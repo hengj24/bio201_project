@@ -1,7 +1,7 @@
 ---
 title: "Bio 201 Project Rough Draft"
 author: "Seth Woodbury, Karan Nayak, Julie Heng"
-date: "11/18/2019" Nov. 18th
+date: "11/18/2019" 
 output: html_document
 ---
 
