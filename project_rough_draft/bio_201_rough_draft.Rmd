@@ -1,7 +1,7 @@
 ---
 title: "Bio 201 Project Rough Draft"
 author: "Seth Woodbury, Karan Nayak, Julie Heng"
-date: "11/18/2019"
+date: "11/18/2019" Nov. 18th
 output: html_document
 ---
 
@@ -19,3 +19,4 @@ library(phyloseq)
 library(vegan)
 set.seed(7)
 ```
+
