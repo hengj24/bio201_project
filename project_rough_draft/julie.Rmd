@@ -11,7 +11,7 @@ Goals: to determine which prebiotic has the greatest effect on pH levels (lookin
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Load packages
+## Load packages
 ```{r Load packages, eval=TRUE, echo=TRUE, message=FALSE, warning=FALSE, results='hide'}
 library(tidyverse)
 library(readxl)
@@ -22,12 +22,150 @@ library(vegan)
 set.seed(7)
 ```
 
+#Curating data
 We start by identifying usable data through data curation. 
 
 ```{r}
-ph_data <- read_delim(file = "C:/Users/Jules/Documents/bio201_project/raw_data/ph_wkly.txt",
+ph_data <- read_delim(file = "C:/Users/Jules/Documents/bio201_project/DB_v_0.08/ph_wkly.txt",
                         delim = "\t", col_names = TRUE, trim_ws = TRUE, 
                         na = c("", "NA")) %>%
-  rename_all(tolower)
+  rename_all(tolower) %>% 
+  filter(quantity_compliant != "no") %>% 
+  select(-use_data, -ph_median)
+
+count(ph_data, supplement_consumed)
+count(ph_data, frequency)
+count(ph_data, semester)
+```
+Over 4 semesters (Fall 2017, Fall 2018, Winter 2018, Winter 2019), there were 5 supplements, banana, BRMPS, HiMaize+BRMPS, LOODAT, and transition_HiMaize. These are given either 1x or 2x daily. There is also a group tested without additional supplements. 
+
+
+#Statistical tests
+We are looking at how consuming these supplements affects pH. In this study, data points were collected before and after supplement consumption. We're using paired t-tests to evaluate whether weekly average pH values changed before and after consumption. A paired t-test will be conducted for every distinct different supplement consumed and frequency.
+
+##Visualizing data
+```{r}
+#Banana x2 daily
+banana_plot <- ph_data %>%
+  filter(supplement_consumed == "Banana",
+         study_week == "week1" | study_week == "week3") %>% 
+  ggplot(aes(x = study_week, 
+             y = ph_mean)) + 
+  geom_violin(aes(color = study_week)) +
+  geom_jitter(aes(color = study_week))+
+  labs(x = NULL,
+       y = "Average weekly pH",
+       title = "Change in pH after Banana supplement") +
+    theme(legend.position = "none")
+save_plot(filename = "C:/Users/Jules/Documents/bio201_project/figures/banana_plot.pdf",
+          plot = banana_plot,
+          nrow = 1, ncol = 1,
+          base_aspect_ratio = 1.1)
+
+#BRMPS x1 daily
+brmps1_plot <- ph_data %>%
+  filter(supplement_consumed == "Banana",
+         study_week == "week1" | study_week == "week3",
+         frequency == "1xdaily") %>% 
+  ggplot(aes(x = study_week, 
+             y = ph_mean)) + 
+  geom_violin(aes(color = study_week)) +
+  geom_jitter(aes(color = study_week))+
+  labs(x = NULL,
+       y = "Average weekly pH",
+       title = "Change in pH after BRMPS supplement (once daily)") +
+    theme(legend.position = "none")
+save_plot(filename = "C:/Users/Jules/Documents/bio201_project/figures/brmps1_plot.pdf",
+          plot = brmps1_plot,
+          nrow = 1, ncol = 1,
+          base_aspect_ratio = 1.1)
+
+#BRMPS x2 daily
+brmps2_plot <- ph_data %>%
+  filter(supplement_consumed == "Banana",
+         study_week == "week1" | study_week == "week3",
+         frequency == "2xdaily") %>% 
+  ggplot(aes(x = study_week, 
+             y = ph_mean)) + 
+  geom_violin(aes(color = study_week)) +
+  geom_jitter(aes(color = study_week))+
+  labs(x = NULL,
+       y = "Average weekly pH",
+       title = "Change in pH after BRMPS supplement (twice daily)") +
+    theme(legend.position = "none")
+save_plot(filename = "C:/Users/Jules/Documents/bio201_project/figures/brmps2_plot.pdf",
+          plot = brmps2_plot,
+          nrow = 1, ncol = 1,
+          base_aspect_ratio = 1.1)
+
+#HiMaize+BRMPS x1 daily
+himaize_brmps_plot <- ph_data %>%
+  filter(supplement_consumed == "HiMaize+BRMPS",
+         study_week == "week1" | study_week == "week3") %>% 
+  ggplot(aes(x = study_week, 
+             y = ph_mean)) + 
+  geom_violin(aes(color = study_week)) +
+  geom_jitter(aes(color = study_week))+
+  labs(x = NULL,
+       y = "Average weekly pH",
+       title = "Change in pH after HiMaize+BRMPS supplement") +
+    theme(legend.position = "none")
+save_plot(filename = "C:/Users/Jules/Documents/bio201_project/figures/himaize_brmps_plot.pdf",
+          plot = himaize_brmps_plot,
+          nrow = 1, ncol = 1,
+          base_aspect_ratio = 1.1)
+
+#LOODAT x1 daily
+LOODAT_plot <- ph_data %>%
+  filter(supplement_consumed == "LOODAT",
+         study_week == "week1" | study_week == "week3",
+         frequency == "1xdaily") %>% 
+  ggplot(aes(x = study_week, 
+             y = ph_mean)) + 
+  geom_violin(aes(color = study_week)) +
+  geom_jitter(aes(color = study_week))+
+  labs(x = NULL,
+       y = "Average weekly pH",
+       title = "Change in pH after LOODAT supplement") +
+    theme(legend.position = "none")
+save_plot(filename = "C:/Users/Jules/Documents/bio201_project/figures/LOODAT_plot.pdf",
+          plot = LOODAT_plot,
+          nrow = 1, ncol = 1,
+          base_aspect_ratio = 1.1)
+
+#none
+no_supplement_plot <- ph_data %>%
+  filter(supplement_consumed == "none",
+         study_week == "week1" | study_week == "week3") %>% 
+  ggplot(aes(x = study_week, 
+             y = ph_mean)) + 
+  geom_violin(aes(color = study_week)) +
+  geom_jitter(aes(color = study_week))+
+  labs(x = NULL,
+       y = "Average weekly pH",
+       title = "Change in pH without supplement") +
+    theme(legend.position = "none")
+save_plot(filename = "C:/Users/Jules/Documents/bio201_project/figures/no_supplement_plot.pdf",
+          plot = no_supplement_plot,
+          nrow = 1, ncol = 1,
+          base_aspect_ratio = 1.1)
+
+#transition_HiMaize x2 daily
+transition_himaize_plot <- ph_data %>%
+  filter(supplement_consumed == "none",
+         study_week == "week1" | study_week == "week3") %>% 
+  ggplot(aes(x = study_week, 
+             y = ph_mean)) + 
+  geom_violin(aes(color = study_week)) +
+  geom_jitter(aes(color = study_week))+
+  labs(x = NULL,
+       y = "Average weekly pH",
+       title = "Change in pH after transition HiMaize supplement") +
+    theme(legend.position = "none")
+save_plot(filename = "C:/Users/Jules/Documents/bio201_project/figures/transition_himaize_plot.pdf",
+          plot = transition_himaize_plot,
+          nrow = 1, ncol = 1,
+          base_aspect_ratio = 1.1)
 ```
 
+##Assumptions
