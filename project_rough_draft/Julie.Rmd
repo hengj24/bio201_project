@@ -1,30 +1,33 @@
 ---
-title: "Julie Project File"
+title: "Bio 201 Project Rough Draft - Julie"
 author: "Julie Heng"
-date: "11/18/2019"
+date: "11/18/2019" 
 output: html_document
 ---
+
+Goals: to determine which prebiotic has the greatest effect on pH levels (looking at most change). Once the prebiotics with the most change potential are identified, their effect on diversity, SCFAs, etc will be further studied to try to find specific pathways and mechanisms.
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+# Load packages
+```{r Load packages, eval=TRUE, echo=TRUE, message=FALSE, warning=FALSE, results='hide'}
+library(tidyverse)
+library(readxl)
+library(broom)
+library(cowplot)
+library(phyloseq)
+library(vegan)
+set.seed(7)
 ```
 
-## Including Plots
+We start by identifying usable data through data curation. 
 
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r}
+ph_data <- read_delim(file = "C:/Users/Jules/Documents/bio201_project/raw_data/ph_wkly.txt",
+                        delim = "\t", col_names = TRUE, trim_ws = TRUE, 
+                        na = c("", "NA")) %>%
+  rename_all(tolower)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
