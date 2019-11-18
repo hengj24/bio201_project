@@ -5,7 +5,7 @@ date: "11/18/2019" Nov. 18th
 output: html_document
 ---
 
-Goals: to determine which prebiotic has the greatest effect on pH levels (looking at most change). Once the prebiotics with the most change potential are identified, their effect on diversity, SCFAs, etc will be further studied.
+Goals: to determine which prebiotic has the greatest effect on pH levels (looking at most change). Once the prebiotics with the most change potential are identified, their effect on diversity, SCFAs, etc will be further studied to try to find specific pathways and mechanisms.
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -22,3 +22,4 @@ library(vegan)
 set.seed(7)
 ```
 
+We start by identifying usable data through data curation. 
