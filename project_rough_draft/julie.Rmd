@@ -168,4 +168,121 @@ save_plot(filename = "C:/Users/Jules/Documents/bio201_project/figures/transition
           base_aspect_ratio = 1.1)
 ```
 
+From these violin plots, we see pH decreases for the most part. Mostly, the lower bound decreases.
+
 ##Assumptions
+
+Normality for paired t-tests. Visualize through histograms.
+
+```{r}
+ph_data_wk1 <- ph_data %>% 
+  filter(study_week == "week1")
+ph_data_wk3 <- ph_data %>% 
+  filter(study_week == "week3")
+
+banana_histogram1 <- ggplot(ph_data_wk1, aes(x=ph_mean)) +
+  geom_histogram() +
+  labs(title = "Histogram for week 1 pH distribution before banana supplement") #appears normal, unimodal
+save_plot(filename = "C:/Users/Jules/Documents/bio201_project/figures/banana_histogram1.pdf",
+          plot = banana_histogram1,
+          nrow = 1, ncol = 1,
+          base_aspect_ratio = 1.8)
+banana_histogram3 <- ggplot(ph_data_wk3, aes(x=ph_mean)) +
+  geom_histogram() +
+  labs(title = "Histogram for week 3 pH distribution after banana supplement") #appears 
+save_plot(filename = "C:/Users/Jules/Documents/bio201_project/figures/banana_histogram3.pdf",
+          plot = banana_histogram3,
+          nrow = 1, ncol = 1,
+          base_aspect_ratio = 1.8)
+
+brmps1_histogram1 <- ggplot(ph_data_wk1, aes(x=ph_mean)) +
+  geom_histogram() +
+  labs(title = "Histogram for week 1 pH distribution before 1xdaily BRMPS supplement") #appears 
+save_plot(filename = "C:/Users/Jules/Documents/bio201_project/figures/brmps1_histogram1.pdf",
+          plot = brmps1_histogram1,
+          nrow = 1, ncol = 1,
+          base_aspect_ratio = 1.8)
+brmps1_histogram3 <- ggplot(ph_data_wk3, aes(x=ph_mean)) +
+  geom_histogram() +
+  labs(title = "Histogram for week 3 pH distribution after 1xdaily BRMPS supplement") #appears
+save_plot(filename = "C:/Users/Jules/Documents/bio201_project/figures/brmps1_histogram3.pdf",
+          plot = brmps1_histogram3,
+          nrow = 1, ncol = 1,
+          base_aspect_ratio = 1.8)
+
+brmps2_histogram1 <- ggplot(ph_data_wk1, aes(x=ph_mean)) +
+  geom_histogram() +
+  labs(title = "Histogram for week 1 pH distribution before 2xdaily BRMPS supplement") #=
+save_plot(filename = "C:/Users/Jules/Documents/bio201_project/figures/brmps2_histogram1.pdf",
+          plot = brmps2_histogram1,
+          nrow = 1, ncol = 1,
+          base_aspect_ratio = 1.8)
+brmps2_histogram3 <- ggplot(ph_data_wk3, aes(x=ph_mean)) +
+  geom_histogram() +
+  labs(title = "Histogram for week 3 pH distribution after 2xdaily BRMPS supplement") #
+save_plot(filename = "C:/Users/Jules/Documents/bio201_project/figures/brmps2_histogram3.pdf",
+          plot = brmps2_histogram3,
+          nrow = 1, ncol = 1,
+          base_aspect_ratio = 1.8)
+
+himaize_brmps_histogram1 <- ggplot(ph_data_wk1, aes(x=ph_mean)) +
+  geom_histogram() +
+  labs(title = "Histogram for week 1 pH distribution before HiMaize+BRMPS supplement") #appears normal, unimodal
+save_plot(filename = "C:/Users/Jules/Documents/bio201_project/figures/himaize_brmps_histogram1.pdf",
+          plot = himaize_brmps_histogram1,
+          nrow = 1, ncol = 1,
+          base_aspect_ratio = 1.8)
+himaize_brmps_histogram3 <- ggplot(ph_data_wk3, aes(x=ph_mean)) +
+  geom_histogram() +
+  labs(title = "Histogram for week 3 pH distribution after HiMaize+BRMPS supplement") #appears
+save_plot(filename = "C:/Users/Jules/Documents/bio201_project/figures/himaize_brmps_histogram3.pdf",
+          plot = himaize_brmps_histogram3,
+          nrow = 1, ncol = 1,
+          base_aspect_ratio = 1.8)
+
+LOODAT_histogram1 <- ggplot(ph_data_wk1, aes(x=ph_mean)) +
+  geom_histogram() +
+  labs(title = "Histogram for week 1 pH distribution before LOODAT supplement") #appears 
+save_plot(filename = "C:/Users/Jules/Documents/bio201_project/figures/LOODAT_histogram1.pdf",
+          plot = LOODAT_histogram1,
+          nrow = 1, ncol = 1,
+          base_aspect_ratio = 1.8)
+LOODAT_histogram3 <- ggplot(ph_data_wk3, aes(x=ph_mean)) +
+  geom_histogram() +
+  labs(title = "Histogram for week 3 pH distribution after LOODAT supplement") #appears 
+save_plot(filename = "C:/Users/Jules/Documents/bio201_project/figures/LOODAT_histogram3.pdf",
+          plot = LOODAT_histogram3,
+          nrow = 1, ncol = 1,
+          base_aspect_ratio = 1.8)
+
+no_supplement_histogram1 <- ggplot(ph_data_wk1, aes(x=ph_mean)) +
+  geom_histogram() +
+  labs(title = "Histogram for week 1 pH distribution with no supplement") #appears 
+save_plot(filename = "C:/Users/Jules/Documents/bio201_project/figures/no_supplement_histogram1.pdf",
+          plot = no_supplement_histogram1,
+          nrow = 1, ncol = 1,
+          base_aspect_ratio = 1.8)
+no_supplement_histogram3 <- ggplot(ph_data_wk3, aes(x=ph_mean)) +
+  geom_histogram() +
+  labs(title = "Histogram for week 3 pH distribution after no supplement") #appears 
+save_plot(filename = "C:/Users/Jules/Documents/bio201_project/figures/no_supplement_histogram3.pdf",
+          plot = no_supplement_histogram3,
+          nrow = 1, ncol = 1,
+          base_aspect_ratio = 1.8)
+
+transition_himaize_histogram1 <- ggplot(ph_data_wk1, aes(x=ph_mean)) +
+  geom_histogram() +
+  labs(title = "Histogram for week 1 pH distribution before Transition HiMaize supplement") #appears 
+save_plot(filename = "C:/Users/Jules/Documents/bio201_project/figures/transition_himaize_histogram1.pdf",
+          plot = transition_himaize_histogram1,
+          nrow = 1, ncol = 1,
+          base_aspect_ratio = 1.8)
+transition_himaize_histogram3 <- ggplot(ph_data_wk3, aes(x=ph_mean)) +
+  geom_histogram() +
+  labs(title = "Histogram for week 3 pH distribution after Transition HiMaize supplement") #appears 
+save_plot(filename = "C:/Users/Jules/Documents/bio201_project/figures/transition_himaize_histogram3.pdf",
+          plot = transition_himaize_histogram3,
+          nrow = 1, ncol = 1,
+          base_aspect_ratio = 1.8)
+```
+
