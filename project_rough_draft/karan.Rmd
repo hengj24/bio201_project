@@ -1,0 +1,513 @@
+---
+title: "Bio 201 Project From Karan"
+author: "Karan Nayak"
+date: "11/18/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+
+```{r}
+library(tidyverse)
+library(readxl)
+library(broom)
+library(cowplot)
+library(agricolae)
+set.seed(7)
+```
+
+
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+
+
+
+
+
+
+
+
+```
+
+```{r}
+pH_wkly <- write_delim(pH_wkly, path = "~/Documents/bio201_project/raw_data/DB_v_0.08/pH_wkly.txt", 
+            delim = "\t", col_names = TRUE) %>%
+            rename_all(tolower)
+
+"Look at pH Data"
+pH_wkly
+count(pH_wkly, supplement_consumed)
+count(pH_wkly, frequency)
+```
+
+```{r}
+
+#BRMPS 1x daily 
+wk1_1xBRMPS <- pH_wkly %>%
+  filter(study_week == "week1",
+         quantity_compliant == "yes" | quantity_compliant == "none",
+         supplement_consumed == "BRMPS", 
+         frequency == "1xdaily") 
+shapiro.test(wk1_1xBRMPS$pH_mean) 
+ggplot(wk1_1xBRMPS, aes(x = pH_mean)) + geom_histogram()
+
+wk3_1xBRMPS <- pH_wkly %>%
+  filter(study_week == "week1", 
+         quantity_compliant == "yes" | quantity_compliant == "none",
+         supplement_consumed == "BRMPS", 
+         frequency == "1xdaily") 
+shapiro.test(wk3_1xBRMPS$pH_mean) 
+ggplot(wk3_1xBRMPS, aes(x = pH_mean)) + geom_histogram()
+
+#BRMPS - Join Data Frames
+x1_df <- inner_join(x = wk1_1xBRMPS, y = wk3_1xBRMPS,
+                    by = c("participant_id", "frequency", 
+                           "semester", "supplement_consumed", "quantity_compliant")) %>%
+  rename(pH_mean_wk1 = pH_mean.x,
+         pH_mean_wk3 = pH_mean.y) %>%
+  select(-starts_with("study_week"))
+
+#BRMPS Paired T-Test
+t.test(x = x1_df$pH_mean_wk1, y = x1_df$pH_mean_wk3, 
+       alternative = "less", paired = TRUE)
+
+
+
+
+#BRMPS 2x daily 
+wk1_2xBRMPS <- pH_wkly %>%
+  filter(study_week == "week1",
+         quantity_compliant == "yes" | quantity_compliant == "none",
+         supplement_consumed == "BRMPS", 
+         frequency == "2xdaily") 
+shapiro.test(wk1_2xBRMPS$pH_mean) 
+ggplot(wk1_2xBRMPS, aes(x = pH_mean)) + geom_histogram()
+
+wk3_2xBRMPS <- pH_wkly %>%
+  filter(study_week == "week1", 
+         quantity_compliant == "yes" | quantity_compliant == "none",
+         supplement_consumed == "BRMPS", 
+         frequency == "2xdaily") 
+shapiro.test(wk3_2xBRMPS$pH_mean) 
+ggplot(wk3_2xBRMPS, aes(x = pH_mean)) + geom_histogram()
+
+#BRMPS - Join Data Frames
+x2BRMPS_df <- inner_join(x = wk1_2xBRMPS, y = wk3_2xBRMPS,
+                    by = c("participant_id", "frequency", 
+                           "semester", "supplement_consumed", "quantity_compliant")) %>%
+  rename(pH_mean_wk1 = pH_mean.x,
+         pH_mean_wk3 = pH_mean.y) %>%
+  select(-starts_with("study_week"))
+
+#BRMPS Paired T-Test
+t.test(x = x2BRMPS_df$pH_mean_wk1, y = x2BRMPS_df$pH_mean_wk3, 
+       alternative = "less", paired = TRUE)
+```
+
+
+
+```{r}
+#Banana 1x Daily
+wk1_1xBanana <- pH_wkly %>%
+  filter(study_week == "week1",
+         quantity_compliant == "yes" | quantity_compliant == "none",
+         supplement_consumed == "Banana", 
+         frequency == "1xdaily") 
+shapiro.test(wk1_1xBanana$pH_mean) 
+ggplot(wk1_1xBanana, aes(x = pH_mean)) + geom_histogram()
+
+wk3_1xBanana <- pH_wkly %>%
+  filter(study_week == "week1", 
+         quantity_compliant == "yes" | quantity_compliant == "none",
+         supplement_consumed == "Banana", 
+         frequency == "1xdaily") 
+shapiro.test(wk3_1xBanana$pH_mean) 
+ggplot(wk3_1xBanana, aes(x = pH_mean)) + geom_histogram()
+
+#Banana - Join Data Frames
+x2_df <- inner_join(x = wk1_1xBanana, y = wk3_1xBanana,
+                    by = c("participant_id", "frequency", 
+                           "semester", "supplement_consumed", "quantity_compliant")) %>%
+  rename(pH_mean_wk1 = pH_mean.x,
+         pH_mean_wk3 = pH_mean.y) %>%
+  select(-starts_with("study_week"))
+
+#Banana Paired T-Test
+t.test(x = x2_df$pH_mean_wk1, y = x2_df$pH_mean_wk3, 
+       alternative = "less", paired = TRUE)
+
+#Banana 2x Daily
+wk1_2xBanana <- pH_wkly %>%
+  filter(study_week == "week1",
+         quantity_compliant == "yes" | quantity_compliant == "none",
+         supplement_consumed == "Banana", 
+         frequency == "2xdaily") 
+shapiro.test(wk1_2xBanana$pH_mean) 
+ggplot(wk1_2xBanana, aes(x = pH_mean)) + geom_histogram()
+
+wk3_2xBanana <- pH_wkly %>%
+  filter(study_week == "week1", 
+         quantity_compliant == "yes" | quantity_compliant == "none",
+         supplement_consumed == "Banana", 
+         frequency == "2xdaily") 
+shapiro.test(wk3_2xBanana$pH_mean) 
+ggplot(wk3_2xBanana, aes(x = pH_mean)) + geom_histogram()
+
+#Banana - Join Data Frames
+x2banana_df <- inner_join(x = wk1_2xBanana, y = wk3_2xBanana,
+                    by = c("participant_id", "frequency", 
+                           "semester", "supplement_consumed", "quantity_compliant")) %>%
+  rename(pH_mean_wk1 = pH_mean.x,
+         pH_mean_wk3 = pH_mean.y) %>%
+  select(-starts_with("study_week"))
+
+#Banana Paired T-Test
+t.test(x = x2banana_df$pH_mean_wk1, y = x2banana_df$pH_mean_wk3, 
+       alternative = "less", paired = TRUE)
+```
+
+
+
+
+
+
+
+```{r}
+#HiMaize+BRMPS 1x Daily 
+wk1_1xHiMaize+BRMPS <- pH_wkly %>%
+  filter(study_week == "week1",
+         quantity_compliant == "yes" | quantity_compliant == "none",
+         supplement_consumed == "HiMaize+BRMPS", 
+         frequency == "1xdaily") 
+shapiro.test(wk1_1xHiMaize+BRMPS$pH_mean) 
+ggplot(wk1_1xHiMaize+BRMPS, aes(x = pH_mean)) + geom_histogram()
+
+wk3_1xHiMaize+BRMPS <- pH_wkly %>%
+  filter(study_week == "week1", 
+         quantity_compliant == "yes" | quantity_compliant == "none",
+         supplement_consumed == "HiMaize+BRMPS", 
+         frequency == "1xdaily") 
+shapiro.test(wk3_1xHiMaize+BRMPS$pH_mean) 
+ggplot(wk3_1xHiMaize+BRMPS, aes(x = pH_mean)) + geom_histogram()
+
+#HiMaize+BRMPS - Join Data Frames
+x3_df <- inner_join(x = wk1_1xHiMaize+BRMPS, y = wk3_1xHiMaize+BRMPS,
+                    by = c("participant_id", "frequency", 
+                           "semester", "supplement_consumed", "quantity_compliant")) %>%
+  rename(pH_mean_wk1 = pH_mean.x,
+         pH_mean_wk3 = pH_mean.y) %>%
+  select(-starts_with("study_week"))
+
+#HiMaize+BRMPS Paired T-Test
+t.test(x = x3_df$pH_mean_wk1, y = x3_df$pH_mean_wk3, 
+       alternative = "less", paired = TRUE)
+
+
+#HiMaize+BRMPS 2x Daily 
+wk1_2xHiMaize+BRMPS <- pH_wkly %>%
+  filter(study_week == "week1",
+         quantity_compliant == "yes" | quantity_compliant == "none",
+         supplement_consumed == "HiMaize+BRMPS", 
+         frequency == "2xdaily") 
+shapiro.test(wk1_2xHiMaize+BRMPS$pH_mean) 
+ggplot(wk1_2xHiMaize+BRMPS, aes(x = pH_mean)) + geom_histogram()
+
+wk3_2xHiMaize+BRMPS <- pH_wkly %>%
+  filter(study_week == "week1", 
+         quantity_compliant == "yes" | quantity_compliant == "none",
+         supplement_consumed == "HiMaize+BRMPS", 
+         frequency == "2xdaily") 
+shapiro.test(wk3_2xHiMaize+BRMPS$pH_mean) 
+ggplot(wk3_2xHiMaize+BRMPS, aes(x = pH_mean)) + geom_histogram()
+
+#HiMaize+BRMPS - Join Data Frames
+x3HiMaize+BRMPS_df <- inner_join(x = wk1_2xHiMaize+BRMPS, y = wk3_2xHiMaize+BRMPS,
+                    by = c("participant_id", "frequency", 
+                           "semester", "supplement_consumed", "quantity_compliant")) %>%
+  rename(pH_mean_wk1 = pH_mean.x,
+         pH_mean_wk3 = pH_mean.y) %>%
+  select(-starts_with("study_week"))
+
+#HiMaize+BRMPS Paired T-Test
+t.test(x = x3HiMaize+BRMPS_df$pH_mean_wk1, y = x3HiMaize+BRMPS_df$pH_mean_wk3, 
+       alternative = "less", paired = TRUE)
+```
+
+
+
+```{r}
+#LOODAT 1x Daily
+wk1_1xLOODAT <- pH_wkly %>%
+  filter(study_week == "week1",
+         quantity_compliant == "yes" | quantity_compliant == "none",
+         supplement_consumed == "LOODAT", 
+         frequency == "1xdaily") 
+shapiro.test(wk1_1xLOODAT$pH_mean) 
+ggplot(wk1_1xLOODAT, aes(x = pH_mean)) + geom_histogram()
+
+wk3_1xLOODAT <- pH_wkly %>%
+  filter(study_week == "week1", 
+         quantity_compliant == "yes" | quantity_compliant == "none",
+         supplement_consumed == "LOODAT", 
+         frequency == "1xdaily") 
+shapiro.test(wk3_1xLOODAT$pH_mean) 
+ggplot(wk3_1xLOODAT, aes(x = pH_mean)) + geom_histogram()
+
+#LOODAT - Join Data Frames
+x4_df <- inner_join(x = wk1_1xLOODAT, y = wk3_1xLOODAT,
+                    by = c("participant_id", "frequency", 
+                           "semester", "supplement_consumed", "quantity_compliant")) %>%
+  rename(pH_mean_wk1 = pH_mean.x,
+         pH_mean_wk3 = pH_mean.y) %>%
+  select(-starts_with("study_week"))
+
+#LOODAT Paired T-Test
+t.test(x = x4_df$pH_mean_wk1, y = x4_df$pH_mean_wk3, 
+       alternative = "less", paired = TRUE)
+
+#LOODAT 2x Daily
+wk1_2xLOODAT <- pH_wkly %>%
+  filter(study_week == "week1",
+         quantity_compliant == "yes" | quantity_compliant == "none",
+         supplement_consumed == "LOODAT", 
+         frequency == "2xdaily") 
+shapiro.test(wk1_2xLOODAT$pH_mean) 
+ggplot(wk1_2xLOODAT, aes(x = pH_mean)) + geom_histogram()
+
+wk3_2xLOODAT <- pH_wkly %>%
+  filter(study_week == "week1", 
+         quantity_compliant == "yes" | quantity_compliant == "none",
+         supplement_consumed == "LOODAT", 
+         frequency == "1xdaily") 
+shapiro.test(wk3_2xLOODAT$pH_mean) 
+ggplot(wk3_2xLOODAT, aes(x = pH_mean)) + geom_histogram()
+
+#LOODAT - Join Data Frames
+x4LOODAT_df <- inner_join(x = wk1_1xLOODAT, y = wk3_1xLOODAT,
+                    by = c("participant_id", "frequency", 
+                           "semester", "supplement_consumed", "quantity_compliant")) %>%
+  rename(pH_mean_wk1 = pH_mean.x,
+         pH_mean_wk3 = pH_mean.y) %>%
+  select(-starts_with("study_week"))
+
+#LOODAT Paired T-Test
+t.test(x = x4LOODAT_df$pH_mean_wk1, y = x4LOODAT_df$pH_mean_wk3, 
+       alternative = "less", paired = TRUE)
+```
+
+```{r}
+#transition_HiMaize 1x Daily
+wk1_1xtransition_HiMaize <- pH_wkly %>%
+  filter(study_week == "week1",
+         quantity_compliant == "yes" | quantity_compliant == "none",
+         supplement_consumed == "transition_HiMaize", 
+         frequency == "1xdaily") 
+shapiro.test(wk1_1xtransition_HiMaize$pH_mean) 
+ggplot(wk1_1xtransition_HiMaize, aes(x = pH_mean)) + geom_histogram()
+
+wk3_1xtransition_HiMaize <- pH_wkly %>%
+  filter(study_week == "week1", 
+         quantity_compliant == "yes" | quantity_compliant == "none",
+         supplement_consumed == "transition_HiMaize", 
+         frequency == "1xdaily") 
+shapiro.test(wk3_1xtransition_HiMaize$pH_mean) 
+ggplot(wk3_1xtransition_HiMaize, aes(x = pH_mean)) + geom_histogram()
+
+#transition_HiMaize - Join Data Frames
+x5_df <- inner_join(x = wk1_1xtransition_HiMaize, y = wk3_1xtransition_HiMaize,
+                    by = c("participant_id", "frequency", 
+                           "semester", "supplement_consumed", "quantity_compliant")) %>%
+  rename(pH_mean_wk1 = pH_mean.x,
+         pH_mean_wk3 = pH_mean.y) %>%
+  select(-starts_with("study_week"))
+
+#transition_HiMaize Paired T-Test
+t.test(x = x5_df$pH_mean_wk1, y = x5_df$pH_mean_wk3, 
+       alternative = "less", paired = TRUE)
+
+
+
+
+#transition_HiMaize 2x Daily
+wk1_2xtransition_HiMaize <- pH_wkly %>%
+  filter(study_week == "week1",
+         quantity_compliant == "yes" | quantity_compliant == "none",
+         supplement_consumed == "transition_HiMaize", 
+         frequency == "2xdaily") 
+shapiro.test(wk1_2xtransition_HiMaize$pH_mean) 
+ggplot(wk1_2xtransition_HiMaize, aes(x = pH_mean)) + geom_histogram()
+
+wk3_2xtransition_HiMaize <- pH_wkly %>%
+  filter(study_week == "week1", 
+         quantity_compliant == "yes" | quantity_compliant == "none",
+         supplement_consumed == "transition_HiMaize", 
+         frequency == "2xdaily") 
+shapiro.test(wk3_2xtransition_HiMaize$pH_mean) 
+ggplot(wk3_2xtransition_HiMaize, aes(x = pH_mean)) + geom_histogram()
+
+#transition_HiMaize - Join Data Frames
+x5transition_HiMaize_df <- inner_join(x = wk1_2xtransition_HiMaize, y = wk3_2xtransition_HiMaize,
+                    by = c("participant_id", "frequency", 
+                           "semester", "supplement_consumed", "quantity_compliant")) %>%
+  rename(pH_mean_wk1 = pH_mean.x,
+         pH_mean_wk3 = pH_mean.y) %>%
+  select(-starts_with("study_week"))
+
+#transition_HiMaize Paired T-Test
+t.test(x = x5transition_HiMaize_df$pH_mean_wk1, y = x5transition_HiMaize_df$pH_mean_wk3, 
+       alternative = "less", paired = TRUE)
+
+
+```
+
+
+```{r}
+#Psyllium 1x Daily
+wk1_1xPsyllium <- pH_wkly %>%
+  filter(study_week == "week1",
+         quantity_compliant == "yes" | quantity_compliant == "none",
+         supplement_consumed == "Psyllium", 
+         frequency == "1xdaily") 
+shapiro.test(wk1_1xPsyllium$pH_mean) 
+ggplot(wk1_1xPsyllium, aes(x = pH_mean)) + geom_histogram()
+
+wk3_1xPsylium <- pH_wkly %>%
+  filter(study_week == "week1", 
+         quantity_compliant == "yes" | quantity_compliant == "none",
+         supplement_consumed == "Psyllium", 
+         frequency == "1xdaily") 
+shapiro.test(wk3_1xPsyllium$pH_mean) 
+ggplot(wk3_1xPsyllium, aes(x = pH_mean)) + geom_histogram()
+
+#Psyllium - Join Data Frames
+x6_df <- inner_join(x = wk1_1xtransition_HiMaize, y = wk3_1xtransition_HiMaize,
+                    by = c("participant_id", "frequency", 
+                           "semester", "supplement_consumed", "quantity_compliant")) %>%
+  rename(pH_mean_wk1 = pH_mean.x,
+         pH_mean_wk3 = pH_mean.y) %>%
+  select(-starts_with("study_week"))
+
+#Psyllium Paired T-Test
+t.test(x = x6_df$pH_mean_wk1, y = x6_df$pH_mean_wk3, 
+       alternative = "less", paired = TRUE)
+
+
+
+
+#Psyllium 2x Daily
+wk1_2xPsyllium <- pH_wkly %>%
+  filter(study_week == "week1",
+         quantity_compliant == "yes" | quantity_compliant == "none",
+         supplement_consumed == "Psyllium", 
+         frequency == "2xdaily") 
+shapiro.test(wk1_2xPsyllium$pH_mean) 
+ggplot(wk1_2xPsyllium, aes(x = pH_mean)) + geom_histogram()
+
+wk3_2xPsyllium <- pH_wkly %>%
+  filter(study_week == "week1", 
+         quantity_compliant == "yes" | quantity_compliant == "none",
+         supplement_consumed == "Psyllium", 
+         frequency == "2xdaily") 
+shapiro.test(wk3_2xPsyllium$pH_mean) 
+ggplot(wk3_2xPsyllium, aes(x = pH_mean)) + geom_histogram()
+
+#Psyllium - Join Data Frames
+x6Psyllium_df <- inner_join(x = wk1_2xPsyllium, y = wk3_2xPsyllium,
+                    by = c("participant_id", "frequency", 
+                           "semester", "supplement_consumed", "quantity_compliant")) %>%
+  rename(pH_mean_wk1 = pH_mean.x,
+         pH_mean_wk3 = pH_mean.y) %>%
+  select(-starts_with("study_week"))
+
+#Psyllium Paired T-Test
+t.test(x = x6Psyllium_df$pH_mean_wk1, y = x6Psyllium_df$pH_mean_wk3, 
+       alternative = "less", paired = TRUE)
+
+```
+
+
+
+```{r}
+#Inulin 1x Daily
+wk1_1xInulin <- pH_wkly %>%
+  filter(study_week == "week1",
+         quantity_compliant == "yes" | quantity_compliant == "none",
+         supplement_consumed == "Inulin", 
+         frequency == "1xdaily") 
+shapiro.test(wk1_1xInulin$pH_mean) 
+ggplot(wk1_1xInulin, aes(x = pH_mean)) + geom_histogram()
+
+wk3_1xInulin <- pH_wkly %>%
+  filter(study_week == "week1", 
+         quantity_compliant == "yes" | quantity_compliant == "none",
+         supplement_consumed == "Inulin", 
+         frequency == "1xdaily") 
+shapiro.test(wk3_1xInulin$pH_mean) 
+ggplot(wk3_1xInulin, aes(x = pH_mean)) + geom_histogram()
+
+#Inulin - Join Data Frames
+x7_df <- inner_join(x = wk1_1xInulin, y = wk3_1xInulin,
+                    by = c("participant_id", "frequency", 
+                           "semester", "supplement_consumed", "quantity_compliant")) %>%
+  rename(pH_mean_wk1 = pH_mean.x,
+         pH_mean_wk3 = pH_mean.y) %>%
+  select(-starts_with("study_week"))
+
+#Inulin Paired T-Test
+t.test(x = x7_df$pH_mean_wk1, y = x7_df$pH_mean_wk3, 
+       alternative = "less", paired = TRUE)
+
+
+
+
+#Inulin 2x Daily
+wk1_2xInulin <- pH_wkly %>%
+  filter(study_week == "week1",
+         quantity_compliant == "yes" | quantity_compliant == "none",
+         supplement_consumed == "Inulin", 
+         frequency == "2xdaily") 
+shapiro.test(wk1_2xInulin$pH_mean) 
+ggplot(wk1_2xInulin, aes(x = pH_mean)) + geom_histogram()
+
+wk3_2xInulin <- pH_wkly %>%
+  filter(study_week == "week1", 
+         quantity_compliant == "yes" | quantity_compliant == "none",
+         supplement_consumed == "Inulin", 
+         frequency == "2xdaily") 
+shapiro.test(wk3_2xInulin$pH_mean) 
+ggplot(wk3_2xInulin, aes(x = pH_mean)) + geom_histogram()
+
+#Inulin- Join Data Frames
+x7Inulin_df <- inner_join(x = wk1_2xInulin, y = wk3_2xInulin,
+                    by = c("participant_id", "frequency", 
+                           "semester", "supplement_consumed", "quantity_compliant")) %>%
+  rename(pH_mean_wk1 = pH_mean.x,
+         pH_mean_wk3 = pH_mean.y) %>%
+  select(-starts_with("study_week"))
+
+#Inulin Paired T-Test
+t.test(x = x7Inulin_df$pH_mean_wk1, y = x7Inulin_df$pH_mean_wk3, 
+       alternative = "less", paired = TRUE)
+```
+
+
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
