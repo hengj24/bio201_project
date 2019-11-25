@@ -182,7 +182,7 @@ ph_data_wk3 <- ph_data %>%
 
 banana_histogram1 <- ggplot(ph_data_wk1, aes(x=ph_mean)) +
   geom_histogram() +
-  labs(title = "Histogram for week 1 pH distribution before banana supplement") #appears normal, unimodal
+  labs(title = "Histogram for week 1 pH distribution before banana supplement") #appears normal, unimodal, symmetric
 save_plot(filename = "C:/Users/Jules/Documents/bio201_project/figures/banana_histogram1.pdf",
           plot = banana_histogram1,
           nrow = 1, ncol = 1,
