@@ -1,7 +1,7 @@
 ---
 title: "Final Biology 201 Project"
 author: "Seth Woodbury, Julie Heng, Maira Gajda, Karan Nayak"
-date: "11/18/2019"
+date: "12/9/2019"
 output: html_document
 ---
 #Research Question:
@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_knit$set(root.dir = "~/Documents/bio201_project")
 ```
 
-# Load packages
+###Load packages
 ```{r Load packages, eval=TRUE, echo=TRUE, message=FALSE, warning=FALSE, results='hide'}
 library(tidyverse)
 library(readxl)
@@ -22,7 +22,9 @@ library(phyloseq); packageVersion("phyloseq")
 set.seed(7)
 ```
 
-#Import Data
+##Data Curation
+
+###Import data
 ```{r}
 #Import Data
 shared_wkly <- read_delim(file = "raw_data/shared_wkly.txt",
@@ -42,10 +44,10 @@ ph_wkly <- read_delim(file = "raw_data/DB_v_0.08/pH_wkly.txt",
 
 #Look at pH Data
 ph_wkly
-count(ph_wkly, Supplement_consumed)
-count(ph_wkly, Frequency)
+count(ph_wkly, Supplement_consumed) #to check number of data points per supplement
+count(ph_wkly, Frequency) #to check frequency of supplement consumed
 ```
-There are 6 supplements:
+pH data was available for six supplements:
 1. Banana (n=32)
 2. BRMPS (n=365)
 3. HiMaize+BRMPS (n=93)
@@ -54,8 +56,7 @@ There are 6 supplements:
 6. transition_HiMaize (n=87)
 and 2 with NA (remove)
 
-
-#Curate pH Weekly Data
+###Weekly pH Data Curation
 ```{r}
 #Rename to our standards and filter data
 curated_ph_wkly <- ph_wkly %>%
@@ -67,42 +68,35 @@ curated_ph_wkly <- ph_wkly %>%
 View(curated_ph_wkly)
 write_delim(curated_ph_wkly, path = "curated_data/curated_ph_wkly.txt", delim = "\t")
 ```
-Now we have a common standard for all of our data. From here, we can further subset for specific conditions, but this data set contains the general conditions for all further calculations.
+Now we have a common standard for all of our data: snake case data, with compliant data from study weeks 1 and 3. This data set contains the general conditions for all further calculations. From here, we can further subset for specific conditions.
 
 
-#Supplement Specific Assumption & Statistical Testing
-It is important to note that there was no pH data for participants who consumed Bananas for week 1, and thus we could not compute a statistical analysis on it.
+##Supplement-Specific Statistical Tests
+Banana pH data was only given for one week, so we ommitted those values. The data we used came from the Fall 2018, Winter 2018, and Winter 2019 semesters.
+
+####2x Daily BRMPS
 ```{r} 
-#2x Daily BRMPS
-
-
-#Further Curation
+#Subsetting data
 brmps_wk1_2x <- curated_ph_wkly %>%
   filter(study_week == "week1", 
          supplement_consumed == "BRMPS", 
          frequency == "2xdaily") 
-
-
 brmps_wk3_2x <- curated_ph_wkly %>%
   filter(study_week == "week3", 
          supplement_consumed == "BRMPS", 
          frequency == "2xdaily") 
 
+#Normality & normality plots
+shapiro.test(brmps_wk1_2x$ph_mean) #p-value = .3826 > 0.1, indicates normality
+ggplot(brmps_wk1_2x, aes(x = ph_mean)) + geom_histogram() #unimodal, fairly normal
+qqnorm(brmps_wk1_2x$ph_mean); qqline(brmps_wk1_2x$ph_mean) #did not follow the Normal Q-Q plot very accurately and the graph had a slight bimodal look
 
-#Normality
-shapiro.test(brmps_wk1_2x$ph_mean) #p-value = .3826
-shapiro.test(brmps_wk3_2x$ph_mean) #p-value = .006713
-
-
-#Normality Plots
-ggplot(brmps_wk1_2x, aes(x = ph_mean)) + geom_histogram()
-ggplot(brmps_wk3_2x, aes(x = ph_mean)) + geom_histogram()
-
-qqnorm(brmps_wk1_2x$ph_mean); qqline(brmps_wk1_2x$ph_mean)
-qqnorm(brmps_wk3_2x$ph_mean); qqline(brmps_wk3_2x$ph_mean)
+shapiro.test(brmps_wk3_2x$ph_mean) #p-value = .006713 < 0.1, indicates non-normality
+ggplot(brmps_wk3_2x, aes(x = ph_mean)) + geom_histogram() #outlier on the left
+qqnorm(brmps_wk3_2x$ph_mean); qqline(brmps_wk3_2x$ph_mean) #majority of points follows line generally
 
 
-#Final Joined Data
+#Sample Size + Variance Assumptions
 brmps_2x <- inner_join(x = brmps_wk1_2x, y = brmps_wk3_2x,
                     by = c("participant_id", "frequency", 
                            "semester", "supplement_consumed", "quantity_compliant")) %>%
@@ -110,303 +104,235 @@ brmps_2x <- inner_join(x = brmps_wk1_2x, y = brmps_wk3_2x,
          brmps_ph_mean_2x_wk3 = ph_mean.y) %>%
   select(-starts_with("study_week"))
 
-
-#Sample Size + Varience Assumptions
-str(brmps_2x) # n=27
+str(brmps_2x) #n=27 < 30
 var.test(x = brmps_2x$brmps_ph_mean_2x_wk1, 
          y = brmps_2x$brmps_ph_mean_2x_wk3, 
-         alternative = "greater") #p-value = .9512
-
-
+         alternative = "greater") #p-value = .9512 is not statistically significant, indicating equal variances
+```
+In calculating the conclusion, we decided to use a non-parametric t-test (Wilcox) because the assumptions for a t-test were not met (sample size was small, data was non-normal). 
+```{r}
 #Statistical Tests 
 wilcox.test(x = brmps_2x$brmps_ph_mean_2x_wk1, 
             y = brmps_2x$brmps_ph_mean_2x_wk3, 
-            alternative = "greater", paired = TRUE, var.equal = TRUE)
-
-#p-value = 0.0002761
+            alternative = "greater", paired = TRUE, var.equal = TRUE) #p-value = 0.0002761
 ```
-We have an extremely low p-value (less than alpha = .001) indicating that BRMPS taken 2x daily did lower pH in participants from week 1 to week 3 on average. In calculating the conclusion, we decided to use a non-parametric t-test (wilcox) because week 3 had non-normal data and week 1 did not follow the Normal Q-Q plot very accurately and the graph had a slight bimodal look. Additionally because the sample size was less than 30 we decided to be safe and use the non-parametric test; variences were equal though for this test.
+The extremely low p-value (less than alpha = .001) indicates that BRMPS taken 2x daily did significantly lower pH in participants from week 1 to week 3 sign. 
 
 
+####2x Daily Transition Maize
 ```{r}
-#2x Daily Transition Maize
-
-
-#Further Curation
+#Subsetting data
 transition_wk1_2x <- curated_ph_wkly %>%
   filter(study_week == "week1", 
          supplement_consumed == "transition_HiMaize", 
          frequency == "2xdaily") 
-
-
 transition_wk3_2x <- curated_ph_wkly %>%
   filter(study_week == "week3", 
          supplement_consumed == "transition_HiMaize", 
          frequency == "2xdaily") 
 
+#Normality and normality plots
+shapiro.test(transition_wk1_2x$ph_mean) #p-value = .8910 > 0.1, indicates normality
+ggplot(transition_wk1_2x, aes(x = ph_mean)) + geom_histogram() #unimodal, normal, bell-shaped
+qqnorm(transition_wk1_2x$ph_mean); qqline(transition_wk1_2x$ph_mean) #aligns with the line
 
-#Normaily + Varience Assumptions
-shapiro.test(transition_wk1_2x$ph_mean) #p-value = .8910
-shapiro.test(transition_wk3_2x$ph_mean) #p-value = .5083
-
-
-#Normality Plots
-ggplot(transition_wk1_2x, aes(x = ph_mean)) + geom_histogram()
-ggplot(transition_wk3_2x, aes(x = ph_mean)) + geom_histogram()
-
-qqnorm(transition_wk1_2x$ph_mean); qqline(transition_wk1_2x$ph_mean)
-qqnorm(transition_wk3_2x$ph_mean); qqline(transition_wk3_2x$ph_mean)
+shapiro.test(transition_wk3_2x$ph_mean) #p-value = .5083 > 0.1, indicates normality
+ggplot(transition_wk3_2x, aes(x = ph_mean)) + geom_histogram() #fairly normal 
+qqnorm(transition_wk3_2x$ph_mean); qqline(transition_wk3_2x$ph_mean) #aligns with the line
 
 
-#Final Joined Data
+#Sample Size + Variance Assumptions
 transition_2x <- inner_join(x = transition_wk1_2x, y = transition_wk3_2x,
                     by = c("participant_id", "frequency", 
                            "semester", "supplement_consumed", "quantity_compliant")) %>%
   rename(transition_ph_mean_2x_wk1 = ph_mean.x,
          transition_ph_mean_2x_wk3 = ph_mean.y) %>%
   select(-starts_with("study_week"))
-
-
-#Sample Size + Varience Assumptions
-str(transition_2x) # n=21
+str(transition_2x) #n=21 < 30
 var.test(x = transition_2x$transition_ph_mean_2x_wk1, 
          y = transition_2x$transition_ph_mean_2x_wk3, 
-         alternative = "greater") #p-value = .9395
-
-
+         alternative = "greater") #p-value = .9395 > 0.1, indicates equal variances
+```
+Despite the smaller sample size, the assumptions indicating normality were met through the Shapiro test and associated histograms/QQ plots. Therefore we proceeded with a parametric t-test with equal variances.
+```{r}
 #Statistical Tests
 t.test(x = transition_2x$transition_ph_mean_2x_wk1, y = transition_2x$transition_ph_mean_2x_wk3, 
-       alternative = "greater", paired = TRUE, var.equal = TRUE) 
-
-#p-value = 0.007215
+       alternative = "greater", paired = TRUE, var.equal = TRUE) #p-value = 0.007215 < 0.1, reject null hypothesis
 ```
-After running significance testing for Transition Maize taken 2x daily we found that there was a signifiant p-value (less than alpha = .01) providing evidence to reject the null hypothesis and conclude that this supplement did decrease the pH in participants from week 1 to week 3 on average. The sample size was not ideal, but both shapiro tests indicated that each subsetted data set was approximately normal which we believed was sufficient evidence to carry out a parametric test (t-test); the variences were equal for the data as well.
+The extremely low p-value (less than alpha = .001) indicates that Transition Maize taken 2x daily did significantly lower pH in participants from week 1 to week 3. 
 
 
+####1x Daily BRMPS
 ```{r}
-#1x Daily BRMPS 
-
-
-#Further Curation
+#Subsetting data
 brmps_wk1_1x <- curated_ph_wkly %>%
   filter(study_week == "week1", 
          supplement_consumed == "BRMPS", 
          frequency == "1xdaily") 
-
-
 brmps_wk3_1x <- curated_ph_wkly %>%
   filter(study_week == "week3", 
          supplement_consumed == "BRMPS", 
          frequency == "1xdaily") 
 
+#Normaily + normality plots
+shapiro.test(brmps_wk1_1x$ph_mean) #p-value = 0.01669 < 0.1
+ggplot(brmps_wk1_1x, aes(x = ph_mean)) + geom_histogram() #skewed left
+qqnorm(brmps_wk1_1x$ph_mean); qqline(brmps_wk1_1x$ph_mean) #follows line closely
 
-#Normaily + Varience Assumptions
-shapiro.test(brmps_wk1_1x$ph_mean) #p-value = 0.01669
-shapiro.test(brmps_wk3_1x$ph_mean) #p-value = .08154
+shapiro.test(brmps_wk3_1x$ph_mean) #p-value = .08154 < 0.1
+ggplot(brmps_wk3_1x, aes(x = ph_mean)) + geom_histogram() #skewed left, unimodal
+qqnorm(brmps_wk3_1x$ph_mean); qqline(brmps_wk3_1x$ph_mean) #follows line closely
 
-
-#Normality Plots
-ggplot(brmps_wk1_1x, aes(x = ph_mean)) + geom_histogram()
-ggplot(brmps_wk3_1x, aes(x = ph_mean)) + geom_histogram()
-
-qqnorm(brmps_wk1_1x$ph_mean); qqline(brmps_wk1_1x$ph_mean)
-qqnorm(brmps_wk3_1x$ph_mean); qqline(brmps_wk3_1x$ph_mean)
-
-
-#Final Joined Data
+#Sample Size + Variance Assumptions
 brmps_1x <- inner_join(x = brmps_wk1_1x, y = brmps_wk3_1x,
                     by = c("participant_id", "frequency", 
                            "semester", "supplement_consumed", "quantity_compliant")) %>%
   rename(brmps_ph_mean_1x_wk1 = ph_mean.x,
          brmps_ph_mean_1x_wk3 = ph_mean.y) %>%
   select(-starts_with("study_week"))
-
-
-#Sample Size + Varience Assumptions
-str(brmps_1x) # n=62
+str(brmps_1x) # n=62 > 30
 var.test(x = brmps_1x$brmps_ph_mean_1x_wk1, 
          y = brmps_1x$brmps_ph_mean_1x_wk3, 
-         alternative = "greater") #p-value = .6063
-
-
-#Statistical Tests 
-t.test(x = brmps_1x$brmps_ph_mean_1x_wk1, y = brmps_1x$brmps_ph_mean_1x_wk3, 
-       alternative = "greater", paired = TRUE, var.equal = TRUE) 
-
-#p-value = 0.1133
+         alternative = "greater") #p-value = .6063 > 0.1, equal variances
 ```
-Although close to our alpha value of .10, we still could not reject our null hypothesis because the p-value was higher than the alpha value. Thus, BRMPS consumed 1x daily did not appear to significantly decrease the pH in participants' guts on average from week 1 to week 3. We decided that a parametric test would be sufficient since the qq plots showed normal data and the histograms appeared to be approximately normal, even thought the sample size was not greater than 30. Additionally, we found the variences to be equal between the subsetted data sets.
-
-
+We decided that a parametric test would be sufficient since the qq plots showed normal data and the histograms appeared to be approximately normal, even thought the sample size was not greater than 30. Additionally, we found the variances to be equal between the subsetted data sets.
 ```{r}
-#1x Daily HiMaize+BRMPS
+#Statistical Tests: 
+t.test(x = brmps_1x$brmps_ph_mean_1x_wk1, y = brmps_1x$brmps_ph_mean_1x_wk3, 
+       alternative = "greater", paired = TRUE, var.equal = TRUE) #p-value = 0.1133
+```
+Although close to our alpha value of .10, we still could not reject our null hypothesis because the p-value was higher than the alpha value. Thus, BRMPS consumed 1x daily did not appear to significantly decrease the pH in participants' guts on average from week 1 to week 3. This being said, we must note that for a complex biological system with many variables, a 0.11 p-value is still noteworthy.
 
 
-#Further Curation
+####1x Daily HiMaize+BRMPS
+```{r}
+#Subsetting data
 himaize_brmps_wk1_1x <- curated_ph_wkly %>%
   filter(study_week == "week1", 
          supplement_consumed == "HiMaize+BRMPS", 
          frequency == "1xdaily") 
-
-
 himaize_brmps_wk3_1x <- curated_ph_wkly %>%
   filter(study_week == "week3", 
          supplement_consumed == "HiMaize+BRMPS", 
          frequency == "1xdaily") 
 
-
-#Normaily + Varience Assumptions
+#Normality and normality plots
 shapiro.test(himaize_brmps_wk1_1x$ph_mean) #p-value = .2955
+ggplot(himaize_brmps_wk1_1x, aes(x = ph_mean)) + geom_histogram() #looks unimodal, normal
+qqnorm(himaize_brmps_wk1_1x$ph_mean); qqline(himaize_brmps_wk1_1x$ph_mean) #points follow line closely
 shapiro.test(himaize_brmps_wk3_1x$ph_mean) #p-value = .05622
+ggplot(himaize_brmps_wk3_1x, aes(x = ph_mean)) + geom_histogram() #unimodal, not even
+qqnorm(himaize_brmps_wk3_1x$ph_mean); qqline(himaize_brmps_wk3_1x$ph_mean) #points follow line
 
 
-#Normality Plots
-ggplot(himaize_brmps_wk1_1x, aes(x = ph_mean)) + geom_histogram()
-ggplot(himaize_brmps_wk3_1x, aes(x = ph_mean)) + geom_histogram()
-
-qqnorm(himaize_brmps_wk1_1x$ph_mean); qqline(himaize_brmps_wk1_1x$ph_mean)
-qqnorm(himaize_brmps_wk3_1x$ph_mean); qqline(himaize_brmps_wk3_1x$ph_mean)
-
-
-#Final Joined Data
+#Sample Size + Variance Assumptions
 himaize_brmps_1x <- inner_join(x = himaize_brmps_wk1_1x, y = himaize_brmps_wk3_1x,
                     by = c("participant_id", "frequency", 
                            "semester", "supplement_consumed", "quantity_compliant")) %>%
   rename(himaize_brmps_ph_mean_1x_wk1 = ph_mean.x,
          himaize_brmps_ph_mean_1x_wk3 = ph_mean.y) %>%
   select(-starts_with("study_week"))
-
-
-#Sample Size + Varience Assumptions
-str(himaize_brmps_1x) # n=23
+str(himaize_brmps_1x) #n=23 < 30
 var.test(x = himaize_brmps_1x$himaize_brmps_ph_mean_1x_wk1, 
          y = himaize_brmps_1x$himaize_brmps_ph_mean_1x_wk3, 
-         alternative = "greater") #p-value = .489
-
-
+         alternative = "greater") #p-value = .489 > 0.1, equal variances
+```
+We used a non-parametric test (wilcox), equal variances because week 3 had non-normal data according to the shapiro test and the graph for week 1 appeared to be bimodal in addition to a low sample size.
+```{r}
 #Statistical Tests 
 wilcox.test(x = himaize_brmps_1x$himaize_brmps_ph_mean_1x_wk1, 
             y = himaize_brmps_1x$himaize_brmps_ph_mean_1x_wk3, 
-            alternative = "greater", paired = TRUE, var.equal = TRUE)
-
-#p-value = 0.05289
+            alternative = "greater", paired = TRUE, var.equal = TRUE) #p-value = 0.05289
 ```
-Since we are looking at complex and diverse biological systems, we thought it was reasonable to use an alpha value of .10. Thus, in this case we found a significant p-value that was less than alpha = .10 providing us with sufficient evidence to reject the null hypothesis and accept the alternative concluding that consuming HiMaize+BRMPS supplement 1x daily did decrease pH on average in individuals from week 1 to week 3. We used a non-parametric test (wilcox) with equal variences because week 3 had non-normal data according to the shapiro test and the graph for week 1 appeared to be bimodal in addition to a low sample size.
+In this case, we found a significant p-value that was less than alpha = .10 providing us with sufficient evidence to reject the null hypothesis and accept the alternative conclusion that consuming HiMaize+BRMPS supplement 1x daily did decrease pH on average in individuals from week 1 to week 3. 
 
 
+####1x Daily LOODAT
 ```{r}
-#1x Daily LOODAT
-
-
-#Further Curation
+#Subsetting data
 loodat_wk1_1x <- curated_ph_wkly %>%
   filter(study_week == "week1", 
          supplement_consumed == "LOODAT", 
          frequency == "1xdaily") 
-
-
 loodat_wk3_1x <- curated_ph_wkly %>%
   filter(study_week == "week3", 
          supplement_consumed == "LOODAT", 
          frequency == "1xdaily") 
 
-
-#Normaily + Varience Assumptions
+#Normality and normality plots
 shapiro.test(loodat_wk1_1x$ph_mean) #p-value = .1888
+ggplot(loodat_wk1_1x, aes(x = ph_mean)) + geom_histogram() #normal, unimodal
+qqnorm(loodat_wk1_1x$ph_mean); qqline(loodat_wk1_1x$ph_mean) #follow line closely
 shapiro.test(loodat_wk3_1x$ph_mean) #p-value = .0213
+ggplot(loodat_wk3_1x, aes(x = ph_mean)) + geom_histogram() #unimodal, with gaps in between (could constitute outliers)
+qqnorm(loodat_wk3_1x$ph_mean); qqline(loodat_wk3_1x$ph_mean) #points tend to stray from line
 
-
-#Normality Plots
-ggplot(loodat_wk1_1x, aes(x = ph_mean)) + geom_histogram()
-ggplot(loodat_wk3_1x, aes(x = ph_mean)) + geom_histogram()
-
-qqnorm(loodat_wk1_1x$ph_mean); qqline(loodat_wk1_1x$ph_mean)
-qqnorm(loodat_wk3_1x$ph_mean); qqline(loodat_wk3_1x$ph_mean)
-
-
-#Final Joined Data
+#Sample Size + Variance Assumptions
 loodat_1x <- inner_join(x = loodat_wk1_1x, y = loodat_wk3_1x,
                     by = c("participant_id", "frequency", 
                            "semester", "supplement_consumed", "quantity_compliant")) %>%
   rename(loodat_ph_mean_1x_wk1 = ph_mean.x,
          loodat_ph_mean_1x_wk3 = ph_mean.y) %>%
   select(-starts_with("study_week"))
-
-
-#Sample Size + Varience Assumptions
-str(loodat_1x) # n=15
+str(loodat_1x) # n=15 < 30
 var.test(x = loodat_1x$loodat_ph_mean_1x_wk1, 
          y = loodat_1x$loodat_ph_mean_1x_wk3, 
-         alternative = "greater") #p-value = .3212
-
-
-#Statistical Tests 
+         alternative = "greater") #p-value = .3212 > 0.1, equal variances
+```
+We used a non-parametric test (wilcox) with equal variences because both subsetted data sets had bimodal data and there was a low sample size.
+```{r}
+#Statistical test: non-parametric
 wilcox.test(x = loodat_1x$loodat_ph_mean_1x_wk1, 
             y = loodat_1x$loodat_ph_mean_1x_wk3, 
-            alternative = "greater", paired = TRUE, var.equal = TRUE)
-
-#p-value = 0.9024
+            alternative = "greater", paired = TRUE, var.equal = TRUE) #p-value = 0.9024
 ```
-The p-value here was far from significant, which would have required it to be lower than alpha = .10. Since it was above this value, we cannot reject the null hypothesis and therefore must conclude that consuming LOODAT 1x daily did not decrease the pH on average in participants' guts from week 1 to week 3. We used a non-parametric test (wilcox) with equal variences because both subsetted data sets had bimodal data and there was a low sample size.
+The p-value here was far from significant, which would have required it to be lower than alpha = .10. We fail to reject the null hypothesis and therefore must conclude that consuming LOODAT 1x daily did not decrease the pH on average in participants' guts from week 1 to week 3. 
 
 
+####No Supplement Consumed
 ```{r}
-#No Supplement Consumed 
-
-
-#Further Curation
+#Subsetting data
 no_supplement_wk1 <- curated_ph_wkly %>%
   filter(study_week == "week1", 
          supplement_consumed == "none", 
          frequency == "-") 
-
-
 no_supplement_wk3 <- curated_ph_wkly %>%
   filter(study_week == "week3", 
          supplement_consumed == "none", 
          frequency == "-") 
 
-
-#Normaily + Varience Assumptions
+#Normality + Normality Plots
 shapiro.test(no_supplement_wk1$ph_mean) #p-value = .1029
-shapiro.test(no_supplement_wk3$ph_mean) #p-value = .03968
-
-
-#Normality Plots
-ggplot(no_supplement_wk1, aes(x = ph_mean)) + geom_histogram()
-ggplot(no_supplement_wk3, aes(x = ph_mean)) + geom_histogram()
-
+ggplot(no_supplement_wk1, aes(x = ph_mean)) + geom_histogram() #looks bimodal
 qqnorm(no_supplement_wk1$ph_mean); qqline(no_supplement_wk1$ph_mean)
+shapiro.test(no_supplement_wk3$ph_mean) #p-value = .03968
+ggplot(no_supplement_wk3, aes(x = ph_mean)) + geom_histogram() #almost appears multimodal, but difficult to tell because of sample size limitations; several gaps, no clear bell shape of normality
 qqnorm(no_supplement_wk3$ph_mean); qqline(no_supplement_wk3$ph_mean)
 
-
-#Final Joined Data
+#Sample Size + Varience Assumptions
 no_supplement <- inner_join(x = no_supplement_wk1, y = no_supplement_wk3,
                     by = c("participant_id", "frequency", 
                            "semester", "supplement_consumed", "quantity_compliant")) %>%
   rename(no_supplement_ph_mean_wk1 = ph_mean.x,
          no_supplement_ph_mean_wk3 = ph_mean.y) %>%
   select(-starts_with("study_week"))
-View(no_supplement)
-
-#Sample Size + Varience Assumptions
-str(no_supplement) # n=24
+str(no_supplement) # n=24 < 30
 var.test(x = no_supplement$no_supplement_ph_mean_wk1, 
          y = no_supplement$no_supplement_ph_mean_wk3, 
          alternative = "greater") #p-value = 0.2721
-
-
-#Statistical Tests 
+```
+We surprisingly found the data sets to be bimodal when we graphed them and did we not have a large sample size leading us to use a non-parametric (wilcox) statistical test. In addition, we found the variances to be equal between the two subsetted data sets.
+```{r}
+#Statistical test: used non-parametric
 wilcox.test(x = no_supplement$no_supplement_ph_mean_wk1, 
             y = no_supplement$no_supplement_ph_mean_wk3, 
-            alternative = "greater", paired = TRUE, var.equal = TRUE)
-
-#p-value = 0.7781
+            alternative = "greater", paired = TRUE, var.equal = TRUE) #p-value = 0.7781 > 0.1
 ```
-In testing our control (no supplement) group, we hypothesized that there would be no significant result, and that is exactly what we got as the p-value was greater than alpha = .10. Thus we accept the null hypothesis stating that there was not a decrease on average for participants who did not consume a supplement from week 1 to week 3. We surprisingly found the data sets to be bimodal when we graphed them and did we not have a large sample size leading us to use a non-parametric (wilcox) statistical test. In addition, we found the variences to be equal between the two subsetted data sets.
+In testing our control (no supplement) group, we hypothesized that there would be no significant result, and that is exactly what we got as the p-value was greater than alpha = .10. Thus we fail to reject the null hypothesis stating that there was no a decrease: on average for participants who did not consume a supplement did not see a change in pH from week 1 to week 3. 
 
 
-#Finding the Mean Difference in pH between Week 3 and Week 1 for Each Supplement (Week 3 - Week 1)
+
+##Finding the Mean Difference in pH between Week 3 and Week 1 for Each Supplement (Week 3 - Week 1)
 The fact that some supplements caused a significant decrease in pH and others did not suggests that not all supplements produce the same results and that there might be an overarching supplement that caused the lowest drop in pH. Our goal here is to determine which supplement causes the largest mean difference in pH. We will only test the statistically significant data sets found above:
 ```{r}
 #BRMPS 2x Daily Mean pH Difference
@@ -636,7 +562,7 @@ lactobacteria_correlation
 Just looking at the scatter plot we can see that there does not appear to be any correlation or pattern between the dots, as they appear to be randomly scattered. Our statistical analysis confirms this as the large p-value (p-value = .4622) indicates that the null hypothesis is true meaning there is no correlation between pH and "Lacto" bacteria. Additionally, the small r-squared value indicates that only about 2.2% of the data can be truly represented by the line of best fit, which is extremely small and inaccurate. If there were to be a correlation, it would be a positive one according to the statistical analysis, which is opposite to what we hypothesized, as here the number of "Lacto" bacteria increases as pH increases.
 
 
-#Did the Number of Lactate Producers Rise?
+##Did the Number of Lactate Producers Rise?
 Because our correlation tests did not find any significant results, we decided to look a little deeper to see if the supplement BRMPS taken 2x daily did at least increase the number of Lactate producers (Lactococcus and Lactobacillus bacteria). These Lactate producers may not be correlated with more acidic conditions, but they confer a variety of health benefits such as decreased gut permeability (inhibiting toxic bacterial biproducts from being absorbed) as well as disease resistance and increased immunity. Additionally, they produce acidic biproducts which may contribute to lower gut pH.
 ```{r}
 #Import Individual Data
