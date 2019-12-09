@@ -1,0 +1,16 @@
+participant_id	status.x	semester	supplement_consumed	use_data.x	quantity_compliant	frequency	ph_median.x	loodat_ph_mean_1x_wk1	status.y	use_data.y	ph_median.y	loodat_ph_mean_1x_wk3
+U701	before	Winter2019	LOODAT	yes	yes	1xdaily	7.5	7.33	during	yes	7.25	7.5
+U706	before	Winter2019	LOODAT	yes	yes	1xdaily	7.5	7.42	during	yes	7.5	7.33
+U707	before	Winter2019	LOODAT	yes	yes	1xdaily	7.5	7.08	during	yes	7.62	7.62
+U708	before	Winter2019	LOODAT	yes	yes	1xdaily	7	7	during	yes	7	7.17
+U710	before	Winter2019	LOODAT	yes	yes	1xdaily	7.25	7.33	during	yes	7.5	7.17
+U711	before	Winter2019	LOODAT	yes	yes	1xdaily	5.25	5.33	during	yes	6.25	6.25
+U712	before	Winter2019	LOODAT	yes	yes	1xdaily	6.75	6.67	during	yes	7.25	7.17
+U713	before	Winter2019	LOODAT	yes	yes	1xdaily	7.25	7.25	during	yes	7.25	7.25
+U715	before	Winter2019	LOODAT	yes	yes	1xdaily	6	6	during	yes	6.25	6.17
+U716	before	Winter2019	LOODAT	yes	yes	1xdaily	6.25	6.5	during	yes	6.25	6.25
+U717	before	Winter2019	LOODAT	yes	yes	1xdaily	7.5	7.42	during	yes	8	7.75
+U719	before	Winter2019	LOODAT	yes	yes	1xdaily	7.5	7.5	during	yes	7.5	7.5
+U720	before	Winter2019	LOODAT	yes	yes	1xdaily	6.25	6.5	during	yes	7.5	7.08
+U721	before	Winter2019	LOODAT	yes	yes	1xdaily	8	7.83	during	yes	7.25	7.25
+U723	before	Winter2019	LOODAT	yes	yes	1xdaily	5.75	5.92	during	yes	5.75	5.67
